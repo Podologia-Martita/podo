@@ -20,6 +20,7 @@ export default function App() {
           <button style={{ marginLeft: 8 }} onClick={() => setView('panel')}>Panel profesional</button>
         </div>
       </div>
+
       {view === 'booking' && <Booking supabase={supabase} />}
       {view === 'panel' && <PanelProfesional supabase={supabase} />}
     </div>
