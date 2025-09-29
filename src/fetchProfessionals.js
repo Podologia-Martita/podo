@@ -8,4 +8,3 @@ export async function fetchProfessionals() {
   if (error) console.error('Error fetching professionals:', error);
   return data || [];
 }
-
