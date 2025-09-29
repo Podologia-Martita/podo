@@ -1,22 +1,22 @@
 import { useEffect, useState } from 'react';
+import { supabase } from './supabaseClient';  // 👈 directo
 import { fetchProfessionals } from './fetchProfessionals';
 
-export default function Booking({ supabase }) {
+export default function Booking() {
   const [professionals, setProfessionals] = useState([]);
   const [selectedProfessional, setSelectedProfessional] = useState('');
   const [services, setServices] = useState([]);
   const [selectedService, setSelectedService] = useState('');
   const [time, setTime] = useState('');
 
-  // Traer profesionales
+  // Profesionales
   useEffect(() => {
     fetchProfessionals().then(data => setProfessionals(data));
   }, []);
 
-  // Traer servicios según profesional seleccionado
+  // Servicios según profesional
   useEffect(() => {
     if (!selectedProfessional) return;
-
     supabase
       .from('services')
       .select('*')
@@ -38,7 +38,7 @@ export default function Booking({ supabase }) {
       {
         professional_id: selectedProfessional,
         service: selectedService,
-        client_name: 'Cliente de prueba', // Puedes reemplazar por login real
+        client_name: 'Cliente de prueba',
         time
       }
     ]);
@@ -90,4 +90,3 @@ export default function Booking({ supabase }) {
     </div>
   );
 }
-
