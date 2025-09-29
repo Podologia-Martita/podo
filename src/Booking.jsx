@@ -1,93 +1,93 @@
 import { useEffect, useState } from 'react';
+import { fetchProfessionals } from './fetchProfessionals';
 
 export default function Booking({ supabase }) {
   const [professionals, setProfessionals] = useState([]);
-  const [services, setServices] = useState([]);
   const [selectedProfessional, setSelectedProfessional] = useState('');
+  const [services, setServices] = useState([]);
   const [selectedService, setSelectedService] = useState('');
-  const [date, setDate] = useState('');
-  const [time, setTime] = useState('10:00');
-  const [clientName, setClientName] = useState('');
-  const [clientContact, setClientContact] = useState('');
-  const [message, setMessage] = useState('');
+  const [time, setTime] = useState('');
 
-  useEffect(() => { fetchProfessionals(); }, []);
+  // Traer profesionales
+  useEffect(() => {
+    fetchProfessionals().then(data => setProfessionals(data));
+  }, []);
 
-  async function fetchProfessionals() {
-    const { data } = await supabase.from('professionals').select('*');
-    setProfessionals(data || []);
-  }
+  // Traer servicios según profesional seleccionado
+  useEffect(() => {
+    if (!selectedProfessional) return;
 
-  async function fetchServices(profId) {
-    const { data } = await supabase.from('services').select('*').eq('professional_id', profId);
-    setServices(data || []);
-  }
+    supabase
+      .from('services')
+      .select('*')
+      .eq('professional_id', selectedProfessional)
+      .then(({ data, error }) => {
+        if (error) console.error(error);
+        else setServices(data);
+      });
+  }, [selectedProfessional]);
 
-  function generateTimeSlots() {
-    let slots = [];
-    for (let h = 10; h < 18; h++) slots.push(`${String(h).padStart(2,'0')}:00`);
-    return slots;
-  }
-
-  async function handleProfessionalChange(e) {
-    const id = e.target.value;
-    setSelectedProfessional(id);
-    setSelectedService('');
-    fetchServices(id);
-  }
-
-  async function handleBook(e) {
-    e.preventDefault();
-    if (!selectedProfessional || !selectedService || !date || !clientName || !clientContact) {
-      setMessage('Completa todos los campos');
+  // Guardar reserva
+  const handleBooking = async () => {
+    if (!selectedProfessional || !selectedService || !time) {
+      alert('Por favor completa todos los campos');
       return;
     }
-    const timeISO = new Date(`${date}T${time}:00`).toISOString();
-    const { error } = await supabase.from('bookings').insert([{
-      professional_id: selectedProfessional,
-      client_name: clientName,
-      client_contact: clientContact,
-      service_id: selectedService,
-      time: timeISO,
-      status: 'PENDIENTE'
-    }]);
-    if (error) setMessage('Error al crear reserva: ' + error.message);
-    else {
-      setMessage('Reserva creada. Se enviará confirmación en hasta 1 hora.');
-      setClientName(''); setClientContact('');
-    }
-  }
+
+    const { error } = await supabase.from('bookings').insert([
+      {
+        professional_id: selectedProfessional,
+        service: selectedService,
+        client_name: 'Cliente de prueba', // Puedes reemplazar por login real
+        time
+      }
+    ]);
+
+    if (error) console.error(error);
+    else alert('Cita reservada con éxito!');
+  };
 
   return (
     <div>
       <h2>Reservar cita</h2>
-      <form onSubmit={handleBook} style={{display:'grid', gap:8, maxWidth:520}}>
-        <label>Profesional</label>
-        <select value={selectedProfessional} onChange={handleProfessionalChange}>
-          <option value=''>-- Selecciona --</option>
-          {professionals.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-        </select>
 
-        <label>Servicio</label>
+      <div>
+        <label>Profesional:</label>
+        <select value={selectedProfessional} onChange={e => setSelectedProfessional(e.target.value)}>
+          <option value="">Selecciona un profesional</option>
+          {professionals.map(p => (
+            <option key={p.id} value={p.id}>{p.name}</option>
+          ))}
+        </select>
+      </div>
+
+      <div>
+        <label>Servicio:</label>
         <select value={selectedService} onChange={e => setSelectedService(e.target.value)}>
-          <option value=''>-- Selecciona --</option>
-          {services.map(s => <option key={s.id} value={s.id}>{s.name} — ${s.price} CLP</option>)}
+          <option value="">Selecciona un servicio</option>
+          {services.map(s => (
+            <option key={s.id} value={s.name}>
+              {s.name} - ${s.price} CLP ({s.duration_minutes} min)
+            </option>
+          ))}
         </select>
+      </div>
 
-        <label>Fecha</label>
-        <input type="date" value={date} onChange={e => setDate(e.target.value)} min={new Date().toISOString().slice(0,10)} />
+      <div>
+        <label>Hora (10:00 - 18:00):</label>
+        <input
+          type="time"
+          min="10:00"
+          max="18:00"
+          value={time}
+          onChange={e => setTime(e.target.value)}
+        />
+      </div>
 
-        <label>Hora (bloque 1h, atención 45 min)</label>
-        <select value={time} onChange={e => setTime(e.target.value)}>
-          {generateTimeSlots().map(t => <option key={t} value={t}>{t}</option>)}
-        </select>
-
-        <input placeholder="Nombre" value={clientName} onChange={e => setClientName(e.target.value)} />
-        <input placeholder="Teléfono o email" value={clientContact} onChange={e => setClientContact(e.target.value)} />
-        <button type="submit">Reservar — Crear</button>
-      </form>
-      {message && <div className="notice">{message}</div>}
-      <div style={{marginTop:12,fontSize:13,color:'#555'}}>Nota: La atención dura 45 minutos, pero se bloquea 1 hora para limpieza.</div>
+      <button onClick={handleBooking} style={{ marginTop: 10 }}>
+        Reservar
+      </button>
     </div>
   );
 }
+
