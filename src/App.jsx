@@ -13,17 +13,19 @@ export default function App() {
 
   const bookSlot = async () => {
     if (!professionalId || !serviceName || !selectedSlot || !clientName) {
-      return alert('Completa todos los campos');
+      alert('Completa todos los campos');
+      return;
     }
 
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('bookings')
       .insert([{
         professional_id: professionalId,
         service: serviceName,
         client_name: clientName,
-        time: selectedSlot
-      }]);
+        time: `${selectedDate} ${selectedSlot}:00`
+      }])
+      .schema('public');
 
     if (error) alert('Error al reservar: ' + error.message);
     else alert('Reserva realizada con éxito');
@@ -32,24 +34,20 @@ export default function App() {
   return (
     <div>
       <h1>Reserva tu cita</h1>
+
       <ProfessionalSelect onSelect={setProfessionalId} />
       {professionalId && <ServiceSelect professionalId={professionalId} onSelect={setServiceName} />}
       {professionalId && serviceName && (
         <>
           <input type="date" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} />
-          <AvailableSlots 
-            professionalId={professionalId} 
-            serviceName={serviceName} 
-            date={selectedDate} 
-            onSelect={setSelectedSlot} 
-          />
+          <AvailableSlots professionalId={professionalId} serviceName={serviceName} date={selectedDate} onSelect={setSelectedSlot} />
         </>
       )}
       {selectedSlot && (
-        <div>
+        <>
           <input type="text" placeholder="Tu nombre" value={clientName} onChange={e => setClientName(e.target.value)} />
           <button onClick={bookSlot}>Reservar</button>
-        </div>
+        </>
       )}
     </div>
   );
