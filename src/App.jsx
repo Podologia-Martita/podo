@@ -4,8 +4,8 @@ import PanelProfesional from './PanelProfesional.jsx';
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY
+  import.meta.env.VITE_SUPABASE_URL=https://oeczqyusjsbvfchyofuo.supabase.co,
+  import.meta.env.VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9lY3pxeXVzanNidmZjaHlvZnVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkwODAzNzgsImV4cCI6MjA3NDY1NjM3OH0.foUxwGTM9ICmI46KO3WxAxf4uuhJycFPyY2q4rHv52k
 );
 
 export default function App() {
