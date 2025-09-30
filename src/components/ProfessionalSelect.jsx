@@ -12,7 +12,7 @@ export default function ProfessionalSelect({ onSelect }) {
         .from('professionals')
         .select('id, name')
         .order('name')
-        .schema('public'); // 🔹 Esquema correcto
+        .schema('public'); // asegura que toma la tabla correcta
 
       if (error) {
         setErrorMsg("Error al cargar: " + error.message);
