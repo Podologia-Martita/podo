@@ -12,10 +12,10 @@ export default function ServiceSelect({ professionalId, onSelect }) {
     const fetchServices = async () => {
       const { data, error } = await supabase
         .from('services')
-        .select('id, name, price, duration_minutes')
+        .select('name, price, duration_minutes')
         .eq('professional_id', professionalId)
         .order('name')
-        .schema('public'); // 🔹 Esquema correcto
+        .schema('public');
 
       if (error) {
         setErrorMsg("Error al cargar servicios: " + error.message);
@@ -30,14 +30,14 @@ export default function ServiceSelect({ professionalId, onSelect }) {
 
   if (loading) return <p>Cargando servicios...</p>;
   if (errorMsg) return <p>{errorMsg}</p>;
-  if (services.length === 0) return <p>No hay servicios para este profesional.</p>;
+  if (services.length === 0) return <p>No hay servicios disponibles.</p>;
 
   return (
     <select onChange={e => onSelect(e.target.value)}>
       <option value="">-- Selecciona servicio --</option>
       {services.map(s => (
-        <option key={s.id} value={s.name}>
-          {s.name} - ${s.price} ({s.duration_minutes} min)
+        <option key={s.name} value={s.name}>
+          {s.name} (${s.price} – {s.duration_minutes} min)
         </option>
       ))}
     </select>
