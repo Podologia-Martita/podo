@@ -1,28 +1,56 @@
 import { useState } from 'react';
-import Booking from './Booking.jsx';
-import PanelProfesional from './PanelProfesional.jsx';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL=https://oeczqyusjsbvfchyofuo.supabase.co,
-  import.meta.env.VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9lY3pxeXVzanNidmZjaHlvZnVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkwODAzNzgsImV4cCI6MjA3NDY1NjM3OH0.foUxwGTM9ICmI46KO3WxAxf4uuhJycFPyY2q4rHv52k
-);
+import ProfessionalSelect from './components/ProfessionalSelect';
+import ServiceSelect from './components/ServiceSelect';
+import AvailableSlots from './components/AvailableSlots';
+import { supabase } from './lib/supabaseClient';
 
 export default function App() {
-  const [view, setView] = useState('booking');
+  const [professionalId, setProfessionalId] = useState('');
+  const [serviceName, setServiceName] = useState('');
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedSlot, setSelectedSlot] = useState('');
+  const [clientName, setClientName] = useState('');
+
+  const bookSlot = async () => {
+    if (!professionalId || !serviceName || !selectedSlot || !clientName) {
+      return alert('Completa todos los campos');
+    }
+
+    const { data, error } = await supabase
+      .from('bookings')
+      .insert([{
+        professional_id: professionalId,
+        service: serviceName,
+        client_name: clientName,
+        time: selectedSlot
+      }]);
+
+    if (error) alert('Error al reservar: ' + error.message);
+    else alert('Reserva realizada con éxito');
+  };
 
   return (
-    <div className="container">
-      <div className="header">
-        <h1>Podología Martita</h1>
+    <div>
+      <h1>Reserva tu cita</h1>
+      <ProfessionalSelect onSelect={setProfessionalId} />
+      {professionalId && <ServiceSelect professionalId={professionalId} onSelect={setServiceName} />}
+      {professionalId && serviceName && (
+        <>
+          <input type="date" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} />
+          <AvailableSlots 
+            professionalId={professionalId} 
+            serviceName={serviceName} 
+            date={selectedDate} 
+            onSelect={setSelectedSlot} 
+          />
+        </>
+      )}
+      {selectedSlot && (
         <div>
-          <button onClick={() => setView('booking')}>Reservar cita</button>
-          <button style={{ marginLeft: 8 }} onClick={() => setView('panel')}>Panel profesional</button>
+          <input type="text" placeholder="Tu nombre" value={clientName} onChange={e => setClientName(e.target.value)} />
+          <button onClick={bookSlot}>Reservar</button>
         </div>
-      </div>
-
-      {view === 'booking' && <Booking supabase={supabase} />}
-      {view === 'panel' && <PanelProfesional supabase={supabase} />}
+      )}
     </div>
   );
 }
