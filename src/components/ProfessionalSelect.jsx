@@ -11,13 +11,17 @@ export default function ProfessionalSelect({ onSelect }) {
       const { data, error } = await supabase
         .from('professionals')
         .select('id, name')
-        .order('name');
+        .order('name')
+        .schema('public'); // 🔹 Esquema correcto
 
-      if (error) setErrorMsg("Error al cargar: " + error.message);
-      else setProfessionals(data || []);
-
+      if (error) {
+        setErrorMsg("Error al cargar: " + error.message);
+      } else {
+        setProfessionals(data || []);
+      }
       setLoading(false);
     };
+
     fetchProfessionals();
   }, []);
 
@@ -27,7 +31,7 @@ export default function ProfessionalSelect({ onSelect }) {
 
   return (
     <select onChange={e => onSelect(e.target.value)}>
-      <option value="">-- Selecciona --</option>
+      <option value="">-- Selecciona profesional --</option>
       {professionals.map(p => (
         <option key={p.id} value={p.id}>{p.name}</option>
       ))}
